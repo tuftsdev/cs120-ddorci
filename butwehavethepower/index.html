@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8" />
+<title>Union Strike Folk Song</title>
+<link rel="stylesheet" href="style.css" type="text/css" />
+</head>
+
+<body>
+
+<h1 id="title">Union Strike Folk Song</h1>
+
+<video src="https://www.cs.tufts.edu/comp/120/butwehavethepower.mp4" id="butwehavethepower" controls></video>
+<div id="lyrics"></div>
+
+<script>
+	// Complete this section and create a CSS file named style.css
+	const lyrics = ["Lisa:\nCome gather round, children,\nIt's high time ye learned\n'Bout a hero named Homer\nAnd a devil named Burns.",
+		"We'll march 'till we drop\nThe girls and the fellas.\nWe'll fight 'till the death\nOr else fold like umbrellas.",
+		"So we'll march day and night\nBy the big cooling tower.\nThey have the plant",
+		"But we have the power.",
+		'Lenny:\nNow do "Classical Gas!"']
+	const video = document.getElementById('butwehavethepower');
+	const subTitleElement = document.getElementById('lyrics');
+	video.addEventListener('timeupdate', (event) => {
+	  if(video.currentTime >= 5 && video.currentTime < 16){subTitleElement.textContent = lyrics[0]}
+	  else if(video.currentTime >= 16 && video.currentTime < 27){subTitleElement.textContent = lyrics[1]}
+	  else if(video.currentTime >= 36 && video.currentTime < 45){subTitleElement.textContent = lyrics[2]}
+	  else if(video.currentTime >= 45 && video.currentTime < 50){subTitleElement.textContent = lyrics[3]}
+	  else if(video.currentTime >= 50 && video.currentTime < 55){subTitleElement.textContent = lyrics[4]}
+	  else if(video.currentTime >= 71 && video.currentTime < 80){subTitleElement.textContent = lyrics[2]}
+	  else if(video.currentTime >= 80 && video.currentTime < 82){subTitleElement.textContent = lyrics[3]}
+	  else if(video.currentTime >= 82 && video.currentTime < 89){subTitleElement.textContent = lyrics[2]}
+	  else if(video.currentTime >= 89 && video.currentTime < 91){subTitleElement.textContent = lyrics[3]}
+	  else{subTitleElement.textContent = ""}
+	});
+</script>
+</body>
+</html>	

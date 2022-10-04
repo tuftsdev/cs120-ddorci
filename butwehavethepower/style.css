@@ -1,0 +1,14 @@
+#lyrics{
+	width: 640px;
+	font-family: system-ui;
+    margin: auto;
+    display: block;
+}
+#butwehavethepower{
+    margin: auto;
+    display: block;	
+}
+#title{
+    margin: auto;
+    width: fit-content;
+}
