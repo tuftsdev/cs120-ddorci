@@ -27,7 +27,7 @@ function success(pos) {
     map: map});
 
   var http = new XMLHttpRequest();
-  var url = 'https://jordan-marsh.herokuapp.com/rides';
+  var url = 'https://evening-falls-16640.herokuapp.com/rides';
   var params = 'username=xXoDw780&lat=' + userCoords.lat() + '&lng=' + userCoords.lng();
   http.open('POST', url, true);
 
@@ -40,6 +40,7 @@ function success(pos) {
           let minDist = Infinity;
           let closestCar;
           let closestCarName;
+          let contentString = '<div id="content">' + '<h1 id="firstHeading" class="firstHeading">Your Location</h1>' + '<div id="bodyContent">' + "<p>No cars were found!</p>" + "</div>" + "</div>";
           let jsonData = JSON.parse(http.responseText);
 
             // Create markers.
@@ -84,23 +85,26 @@ function success(pos) {
 
             }
 
-          const closestPath = new google.maps.Polyline({
-            path: [userCoords, closestCar],
-            geodesic: true,
-            strokeColor: "#FF0000",
-            strokeOpacity: 1.0,
-            strokeWeight: 2,
-          });
+          if(closestCar){
+          
+            const closestPath = new google.maps.Polyline({
+              path: [userCoords, closestCar],
+              geodesic: true,
+              strokeColor: "#FF0000",
+              strokeOpacity: 1.0,
+              strokeWeight: 2,
+            });
 
-          closestPath.setMap(map);
+            closestPath.setMap(map);
 
-          let contentString =
-            '<div id="content">' +
-            '<h1 id="firstHeading" class="firstHeading">Your Location</h1>' +
-            '<div id="bodyContent">' +
-            "<p>The car: " + closestCarName + " is the closest vehicle to your location. It is approximately " + minDist.toFixed(2) + " miles away.</p>" +
-            "</div>" +
-            "</div>";
+            contentString = '<div id="content">' +
+              '<h1 id="firstHeading" class="firstHeading">Your Location</h1>' +
+              '<div id="bodyContent">' +
+              "<p>The car: " + closestCarName + " is the closest vehicle to your location. It is approximately " + minDist.toFixed(2) + " miles away.</p>" +
+              "</div>" +
+              "</div>";
+          }
+
           let infowindow = new google.maps.InfoWindow({
             content: contentString,
             ariaLabel: "Your Location",
