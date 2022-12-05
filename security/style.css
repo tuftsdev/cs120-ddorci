@@ -1,0 +1,32 @@
+html,
+body {
+  height: 100%;
+  margin: 0 20px;
+  padding: 0;
+  background-color: #fefefe;
+}
+img {
+    display: block;
+    width: 80%;
+    margin: auto;
+    padding: 20px 0px;
+}
+pre code {
+	background-color: #eee;
+	border: 1px solid #999;
+	display: block;
+	padding: 20px;
+  }
+
+.code-span{
+	font-family: monospace;
+}
+li{
+	margin: 20px auto;
+}
+.introduction{
+	padding-top: 20px;
+}
+.conclusion{
+	padding-bottom: 20px;
+}

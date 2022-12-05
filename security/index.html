@@ -1,0 +1,119 @@
+<html>
+  <head>
+    <title>Simple Map</title>
+    <link rel="stylesheet" type="text/css" href="style.css" />
+  </head>
+  <body>
+    <h1 class="introduction">Introduction</h1>
+    <p>
+      The product being analyzed is a ride hailing service. The server-side code of this application was provided for review. During this review, the code will be inspected for various security and privacy issues. For security/privacy issues that were found, resolutions were provided. 
+    </p>
+    <h1>Methodology</h1>
+    <p>
+     Firstly, static analysis was conducted in search of vulnerabilities. This static analysis consisted of manually reviewing the source code for any potential issues. Once potential issues were located, they were further tested to verify whether or not a true vulnerability existed. For example, a local environment and database were set up, attacks based off the initial static analysis findings where conducted in this local setting. If vulnerabilities where producible they were included in the section below. 
+    </p>
+    <h1>Abstract of Findings</h1>
+    <p>
+     Overall, it was found that the database is vulnerable and can be exposed in situations where it shouldn't be. While there seems to be not too much protected data now, this could be an issue later. For example, data for all passengers can be accessed via endpoints that are only supposed to display information for a certain passenger. Same issue with vehicles. Javascript can be injected into the database. This means that malicious users will be able to insert executable code onto the site and unsuspecting users will run this code when opening certain pages of the site. Lastly, there is no user verification implemented. Users can act as someone they are not. 
+    </p>
+    <h1>Issues Found</h1>
+    <ul>
+      <hr>
+      <li>
+        <b>Issue:</b> XSS Attack<br>
+        <b>Location:</b> /rides (post request to the rides page)<br>
+        <b>Severity:</b> High, an attacker could run malicious code on other user's browsers.<br>
+        <b>Description of issue:</b> The post requests to the /rides endpoint takes in unprocessed text. In more detail, the username field of the endpoint accepts all text. A user could write whatever they want and it will be stored in the database. This table of the database is getting pulled and inserted into HTML in the app, problems could arise.<br>
+        <b>Proof of Vulnerability:</b> Using "curl", a post request was made: <span class="code-span">curl --data "username=%3Cbutton%20onclick%3D%22alert%28%27xss%27%29%22%3EClick%20me%3C%2Fbutton%3E&lat=0.00&lng=0.00" http://localhost:5000/rides</span> This post created a button on the home page (/). When the button is clicked javascript is run. See the screenshot below: 
+        <img src="xss.png"><br>
+        <b>Resolution:</b> To resolve this decide what characters/symbols should be allowed in the username field. Before performing the SQL query, check that the username only contains those symbols. For example, a starting point could be disallowing strings that contain: &lt;script&gt;, or changing &lt; and &gt; signs to <xmp>&lt; and &gt;</xmp>It is also a good idea to look into general whitelisting practices, as deciding what the user is allowed to write is necessary in all fields that allow user input. 
+        <br>
+      </li>
+      <hr>
+      <li>
+        <b>Issue:</b> SQL Injection<br>
+        <b>Location:</b> /passenger.json (get request)<br>
+        <b>Severity:</b> High, could reveal the ENTIRE passengers table and potentially more tables with very clever SQL statements.<br>
+        <b>Description of issue:</b> The post requests to the /passenger.json endpoint passes a query to the database that is made from string concatination. A user can manually modify the string to make their own SQL query which will be returned in the json data. As of right now, it may not be a problem if all passengers are shown but in the future this may have protected data. This means it must be fixed so the app can be easily scaled with no unseen future vulnerabilities. <br>
+        <b>Proof of Vulnerability:</b> Using "curl", the following code was executed: <span class="code-span">curl http://localhost:5000/passenger.json?username=a%27%20OR%20%27a%27%3D%27a</span>. This request revealed the entire passengers table.<br>
+        <b>Resolution:</b> To resolve this, use prepared statements. The following code:
+        <pre>
+          <code>
+            theQuery = "SELECT * FROM passengers WHERE username = '" + usernameEntry + "'";
+            client.query(theQuery, (error, result) => {
+              if (!error) {
+                response.send(result.rows);
+              }
+            });
+          </code>
+        </pre>
+        could be replaced with:
+        <pre>
+          <code>
+            const query = {
+              text: 'SELECT * FROM passengers WHERE username = $1',
+              values: [usernameEntry],
+            }
+            client.query(query, (error, result) => {
+              if (!error) {
+                response.send(result.rows);
+              }
+            });
+          </code>
+        </pre>
+        When the same curl command that produced the database leak was run again but with the new code in place, an empty list was instead returned. The endpoint still worked fine when normal usernames that exist in the database were supplied.
+        <br>
+      </li>
+      <hr>
+      <li>
+        <b>Issue:</b> SQL Injection<br>
+        <b>Location:</b> /vehicle.json (get request)<br>
+        <b>Severity:</b> High, could reveal the ENTIRE vehicles table and potentially more tables with very clever SQL statements.<br>
+        <b>Description of issue:</b> The post requests to the /vehicle.json endpoint passes a query to the database that is made from string concatination. A user can manually modify the string to make their own SQL query which will be returned in the json data. As of right now, it may not be a problem if all vehicles are shown but in the future this may have protected data. This means it must be fixed so the app can be easily scaled with no unseen future vulnerabilities. <br>
+        <b>Proof of Vulnerability:</b> Using "curl", the same code from the issue above was executed on this new endpoint: <span class="code-span">curl http://localhost:5000/vehicle.json?username=a%27%20OR%20%27a%27%3D%27a</span>. This request revealed the entire passengers table.<br>
+        <b>Resolution:</b> To resolve this, use prepared statements. The following code:
+        <pre>
+          <code>
+            theQuery = "SELECT * FROM vehicles WHERE username = '" + usernameEntry + "'";
+            client.query(theQuery, (error, result) => {
+              if (!error) {
+                response.send(result.rows);
+              }
+            });
+          </code>
+        </pre>
+        could be replaced with:
+        <pre>
+          <code>
+            const query = {
+              text: 'SELECT * FROM vehicles WHERE username = $1',
+              values: [usernameEntry],
+            }
+            client.query(query, (error, result) => {
+              if (!error) {
+                response.send(result.rows);
+              }
+            });
+          </code>
+        </pre>
+        When the same curl command that produced the database leak was run again but with the new code in place, an empty list was instead returned. The endpoint still worked fine when normal usernames that exist in the database were supplied.
+        <br>
+      </li>
+      <hr>
+      <li>
+        <b>Issue:</b> No Database Verification<br>
+        <b>Location:</b> /update<br>
+        <b>Severity:</b> High, vehicle locations can be updated by anyone (safety risk for users!).<br>
+        <b>Description of issue:</b> The /update endpoint will insert new vehicle location values into the vehicles table, without verifying that the actual user with that username made the update. In a real application scenario, usernames should actually be verified somehow, otherwise someone can pretend to be someone else. In a ride sharing service there are obvious reasons why this is very bad. For example, a ride requestor expects a certain vehicle to be at their location, a malicious user who is at that location as well sends a request to the update endpoint with the expected vehicle username. Now the ride requestor is getting tricked as someone they don't know is there to pick them up.<br>
+        <b>Proof of Vulnerability:</b> Using "curl", at the update endpoint: <span class="code-span">curl --data "username=JANET&lat=0.00&lng=0.00" http://localhost:5000/update</span>, the location of "JANET" was updated with no verification that "JANET" actually was the one making this update.<br>
+        <b>Resolution:</b> To resolve this, some sort of user verification must be implemented. A simple fix, would be requiring users to sign up and make passwords. Then when user specific functions are run, require that the password is provided and check that it is correct. It is strongly recommended that third party API's are used for verification as they are more likely to have gone through robust testing. 
+        <br>
+      </li>
+      <hr>
+    </ul>
+    <h1>Conclusion</h1>
+    <p class="conclusion">
+     It is important to remember to always clean user input before running any database queries. Look into whitelisting. For extra safeguards, don't only check data when making database queries but also taking something from the database and displaying to the client side. This will help if something slips by into the database. This additional step could help prevent XSS attacks from making it to the client side. Understand what characters/symbols should be allowed for each possible place a user inputs data. Develop a user authentication/verification system. These can be difficult to build out without a third-party framework as they require lots of testing. This is a larger task but worth the effort as user authentication is necessary for any production app. Look into frameworks like Passport (open-source) or Auth0 (pricing tiers).  
+    </p>
+  </body>
+</html>
